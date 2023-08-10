@@ -1,4 +1,4 @@
-package com.team.springintegrationexample.integration;
+package com.team.integration;
 
 import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.core.MessageSource;

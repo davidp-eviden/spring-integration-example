@@ -1,8 +1,3 @@
-# Read Me First
-The following was discovered as part of building this project:
-
-* The original package name 'com.team.spring-integration-example' is invalid and this project uses 'com.team.springintegrationexample' instead.
-
 # Getting Started
 
 ### Reference Documentation
