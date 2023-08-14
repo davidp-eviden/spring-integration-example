@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3307/test?createDatabaseIfNotExist=true
+    username: root
+    password: toor
+  # Spring batch
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: false
+
+file:
+  directory:
+    input: src/main/resources/input
+    output: src/main/resources/output
