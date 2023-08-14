@@ -8,8 +8,7 @@ import java.nio.file.Paths;
 
 @Component
 public class Transformer {
-    public String transform(String filePath) throws IOException {
-        String content = new String(Files.readAllBytes(Paths.get(filePath))).toUpperCase();
-        return content;
+    public String transformToUppercase(String filePath) throws IOException {
+        return new String(Files.readAllBytes(Paths.get(filePath))).toUpperCase();
     }
 }

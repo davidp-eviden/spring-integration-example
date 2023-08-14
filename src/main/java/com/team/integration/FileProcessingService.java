@@ -1,6 +1,7 @@
 package com.team.integration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -23,43 +24,39 @@ import java.io.File;
 @Configuration
 @EnableIntegration
 public class FileProcessingService {
-    private final Environment enviroment;
-    public final String FILE_PATTERN = "mock_data.csv";
 
-    @Autowired
-    private Transformer transformer;
+    @Value("${file.directory.input}")
+    private String inputDirectory;
 
-    public FileProcessingService(Environment enviroment) {
-        this.enviroment = enviroment;
-    }
+    @Value("${file.directory.output}")
+    private String outputDirectory;
+    public final String FILE_PATTERN = "*.csv";
 
-    @Bean
-    public MessageChannel fileChannel() {
-        return new DirectChannel();
+    private final Transformer transformer;
+
+    public FileProcessingService(Transformer transformer) {
+        this.transformer = transformer;
     }
 
     @Bean
     public IntegrationFlow integrationFlow(){
-        return IntegrationFlow.from(fileReading(),
-                spec -> spec.poller(Pollers.fixedDelay(500)))
-                .transform(transformer, "transform")
+        return IntegrationFlow.from(fileReading(), spec -> spec.poller(Pollers.fixedDelay(500)))
+                .transform(transformer, "transformToUppercase")
                 .handle(fileWriting())
                 .get();
     }
 
     @Bean
-    @InboundChannelAdapter(value = "fileChannel", poller = @Poller(fixedDelay = "1000"))
     public MessageSource<File> fileReading() {
         FileReadingMessageSource sourceReader= new FileReadingMessageSource();
-        sourceReader.setDirectory(new File(enviroment.getProperty("file.directory.input")));
+        sourceReader.setDirectory(new File(this.inputDirectory));
         sourceReader.setFilter(new SimplePatternFileListFilter(FILE_PATTERN));
         return sourceReader;
     }
 
     @Bean
-    @ServiceActivator(inputChannel= "fileChannel")
     public MessageHandler fileWriting() {
-        FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(enviroment.getProperty("file.directory.output")));
+        FileWritingMessageHandler handler = new FileWritingMessageHandler(new File(this.outputDirectory));
         handler.setExpectReply(false);
         return handler;
     }
