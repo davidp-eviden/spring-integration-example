@@ -1,36 +1,27 @@
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-### STS ###
-.apt_generated
+target
 .classpath
-.factorypath
 .project
 .settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
+bin
+build.log
+integration-repo
+ivy-cache
+spring-build
+derby-home
+derbydb
+derby.log
+com.springsource.sts.config.flow.prefs
+s3.properties
 .idea
-*.iws
 *.iml
 *.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+*.iws
+.*.swp
+.DS_Store
+.springBeans
+build
+.gradle
+out
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-### VS Code ###
-.vscode/
+/.gradletasknamecache
+**/*.flattened-pom.xml
