@@ -3,8 +3,10 @@ package com.example.spring.batch.listener;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
+import org.springframework.stereotype.Component;
 
 @Slf4j // Similar to private static Logger logger = LoggerFactory.getLogger(JobListener.class);
+@Component
 public class JobListener implements JobExecutionListener {
 
     @Override
