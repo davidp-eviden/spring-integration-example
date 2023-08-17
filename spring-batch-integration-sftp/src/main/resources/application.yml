@@ -1,8 +1,21 @@
 spring:
+  batch:
+    jdbc:
+      initialize-schema: always
   datasource:
-    url: jdbc:h2:mem:contractdb
-    username: sa
-    password: password
-    driverClassName: org.h2.Driver
+    url: jdbc:mysql://localhost:3307/contracts_db?createDatabaseIfNotExist=true
+    username: root
+    password: toor
+    driverClassName: com.mysql.cj.jdbc.Driver
   jpa:
-    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+# SFTP config
+application:
+  host: # 192.168....
+  port: # ...
+  user: # ...
+  privateKey: # classpath:id_rsa
+  directory: # /someDirectory

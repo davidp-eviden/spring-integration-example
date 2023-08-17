@@ -5,9 +5,9 @@ import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.stereotype.Component;
 
-@Slf4j // Similar to private static Logger logger = LoggerFactory.getLogger(JobListener.class);
+@Slf4j // Similar to: private static Logger log = LoggerFactory.getLogger(CustomJobExecutionListener.class);
 @Component
-public class JobListener implements JobExecutionListener {
+public class CustomJobExecutionListener implements JobExecutionListener {
 
     @Override
     public void afterJob(JobExecution jobExecution) {
