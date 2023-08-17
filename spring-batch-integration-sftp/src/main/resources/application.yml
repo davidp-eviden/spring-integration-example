@@ -1,8 +1,17 @@
+
 spring:
+  batch:
+    jdbc:
+      initialize-schema: always
   datasource:
-    url: jdbc:h2:mem:contractdb
-    username: sa
-    password: password
-    driverClassName: org.h2.Driver
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://localhost:3307/contracts
+      username: root
+      password: 1234
   jpa:
-    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+    hibernate.ddl-auto: update
+    show-sql: true
+
+file:
+  directory:
+        output: src/main/resources/output
