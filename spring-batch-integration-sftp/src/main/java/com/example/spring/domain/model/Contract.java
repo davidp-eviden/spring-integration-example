@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class Contract {
     @Id
     @Column(name = "policy_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long policyId;
 
     @Column(name = "policy_name")
