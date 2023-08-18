@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/batch")
 public class IntegrationController {
 
-    @Autowired
-    public IntegrationGateway integrationGateway;
+    public final IntegrationGateway integrationGateway;
+
+    public IntegrationController(IntegrationGateway integrationGateway) {
+        this.integrationGateway = integrationGateway;
+    }
 
     @PostMapping("/start")
     public void getMessageFromIntegrationService(){
