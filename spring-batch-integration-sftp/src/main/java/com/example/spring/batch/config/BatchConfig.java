@@ -48,8 +48,8 @@ public class BatchConfig {
 
     // ============================================= JOBS =============================================
     @Bean
-    public Job moveToOtherTableJob(Step moveToOtherTableStep, JobRepository jobRepository , CustomJobExecutionListener listener, Step convertToCsvStep) {
-        return new JobBuilder("moveToOtherTableJob", jobRepository)
+    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository , CustomJobExecutionListener listener, Step convertToCsvStep) {
+        return new JobBuilder("moveToOtherTableAndWriteInCsvJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener) // job listener
                 .start(moveToOtherTableStep) // move the data from contract table to contract_processed table ( in database ).

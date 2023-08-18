@@ -16,8 +16,7 @@ import org.springframework.messaging.MessageHandler;
 @Configuration
 public class IntegrationConfig {
 
-
-    //TODO: Implement the http
+    //TODO: Implement the http integration
 
 
 
