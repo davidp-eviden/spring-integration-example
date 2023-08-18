@@ -3,22 +3,36 @@ package com.example.spring.integration.config;
 import org.apache.sshd.sftp.client.SftpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.ResolvableType;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.expression.common.LiteralExpression;
+import org.springframework.http.HttpMethod;
+import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.integration.config.EnableIntegration;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
+import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
 @Configuration
+@EnableIntegration
 public class IntegrationConfig {
+    @Bean
+    public MessageChannel recieverChannel(){
+        return new DirectChannel();
+    }
 
-    //TODO: Implement the http integration
-
-
+    @Bean
+    public MessageChannel replyChannel(){
+        return new DirectChannel();
+    }
 
     /*
     @Bean
