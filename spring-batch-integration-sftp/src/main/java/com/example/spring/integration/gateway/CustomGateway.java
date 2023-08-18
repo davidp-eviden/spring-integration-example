@@ -5,10 +5,11 @@ import org.springframework.integration.annotation.MessagingGateway;
 
 import java.io.File;
 
-//@MessagingGateway
+@MessagingGateway
 public interface CustomGateway {
-    /*
+    @Gateway(requestChannel = "launchJobsChannel")
+    void runJobs(String msg);
+
     @Gateway(requestChannel = "toSftpChannel")
     void sendToSftp(File file);
-    */
 }

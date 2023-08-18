@@ -1,6 +1,11 @@
 package com.example.spring.integration.config;
 
 import org.apache.sshd.sftp.client.SftpClient;
+import org.springframework.batch.core.*;
+import org.springframework.batch.core.launch.JobLauncher;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ResolvableType;
@@ -21,18 +26,34 @@ import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
+import java.util.Date;
+
 @Configuration
 @EnableIntegration
 public class IntegrationConfig {
-    @Bean
-    public MessageChannel receiverChannel(){
-        return new DirectChannel();
+    private final Job job;
+    private final JobLauncher jobLauncher;
+
+    public IntegrationConfig(Job moveToOtherTableAndWriteInCsvJob, JobLauncher jobLauncher) {
+        this.job = moveToOtherTableAndWriteInCsvJob;
+        this.jobLauncher = jobLauncher;
     }
 
-    @Bean
-    public MessageChannel replyChannel(){
-        return new DirectChannel();
+    // This method is activated when someone subscribes to the launchJobsChannel.
+    @ServiceActivator(inputChannel = "launchJobsChannel")
+    public void launchJobs() throws JobExecutionException {
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
+                .addDate("date",new Date());
+        this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
     }
+
+    /*
+        MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
+        MessageBuilder.fromMessage(message);
+        Message<String> newMessage = MessageBuilder
+                .withPayload("Welcome " + message.getPayload() + " to Integration").build();
+            replyChannel.send(message);
+    */
 
     /*
     @Bean
