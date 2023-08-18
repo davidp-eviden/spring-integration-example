@@ -25,7 +25,7 @@ import org.springframework.messaging.MessageHandler;
 @EnableIntegration
 public class IntegrationConfig {
     @Bean
-    public MessageChannel recieverChannel(){
+    public MessageChannel receiverChannel(){
         return new DirectChannel();
     }
 
