@@ -17,8 +17,10 @@ import org.springframework.integration.annotation.IntegrationComponentScan;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.config.EnableIntegration;
+import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.file.remote.session.CachingSessionFactory;
 import org.springframework.integration.file.remote.session.SessionFactory;
+import org.springframework.integration.http.dsl.Http;
 import org.springframework.integration.http.inbound.HttpRequestHandlingMessagingGateway;
 import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
@@ -39,11 +41,19 @@ public class IntegrationConfig {
         this.jobLauncher = jobLauncher;
     }
 
+    @Bean
+    public IntegrationFlow inbound() {
+        return IntegrationFlow.from(Http.inboundGateway("/launch")
+                        .requestMapping(m -> m.methods(HttpMethod.POST)))
+                .channel("launchJobsChannel")
+                .get();
+    }
+
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
     public void launchJobs() throws JobExecutionException {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
-                .addDate("date",new Date());
+                .addDate("date", new Date());
         this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
     }
 
