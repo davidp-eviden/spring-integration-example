@@ -11,4 +11,9 @@ services:
       - "3307:3306"
     expose:
       - 3307:3306
-
+  sftp:
+    image: atmoz/sftp:latest
+    container_name: sftp_server
+    ports:
+      - "2222:22"
+    command: user:password123:::upload # User "user" with password "password123" can share files into the folder "/upload"

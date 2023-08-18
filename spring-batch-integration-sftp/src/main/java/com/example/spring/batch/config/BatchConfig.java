@@ -5,6 +5,7 @@ import com.example.spring.batch.listener.CustomStepExecutionListener;
 import com.example.spring.batch.listener.CustomJobExecutionListener;
 import com.example.spring.domain.model.Contract;
 import com.example.spring.domain.model.ContractProcessed;
+import com.example.spring.domain.repository.ContractProcessedPagSortRepository;
 import com.example.spring.domain.repository.ContractProcessedRepository;
 import com.example.spring.domain.repository.ContractRepository;
 import com.example.spring.integration.gateway.CustomGateway;
@@ -39,21 +40,20 @@ public class BatchConfig {
     private final ContractRepository contractRepository;
     private final ContractProcessedRepository contractProcessedRepository;
 
-    public BatchConfig(ContractRepository contractRepository, ContractProcessedRepository contractProcessedRepository){
+    public BatchConfig(ContractRepository contractRepository, ContractProcessedRepository contractProcessedRepository) {
         this.contractRepository = contractRepository;
         this.contractProcessedRepository = contractProcessedRepository;
     }
 
 
     // ============================================= JOBS =============================================
-
     @Bean
     public Job moveToOtherTableJob(Step moveToOtherTableStep, JobRepository jobRepository , CustomJobExecutionListener listener, Step convertToCsvStep) {
         return new JobBuilder("moveToOtherTableJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener) // job listener
                 .start(moveToOtherTableStep) // move the data from contract table to contract_processed table ( in database ).
-                .next(convertToCsvStep) // copy the files from the contract table to a .csv file
+                .next(convertToCsvStep) // copy the data from the contract table and write into a .csv file
                 .build();
     }
 
@@ -83,17 +83,18 @@ public class BatchConfig {
     }
 
 
-    /**
+    /*
     @Bean
     public Step fileToSftpStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomGateway customGateway){
         return new StepBuilder("fileToSftpStep",jobRepository)
                 .tasklet((contribution, chunkContext) -> {
-                    customGateway.sendToFtp(new FileSystemResource(DEFAULT_FILE_PATH).getFile());
+                    customGateway.sendToSftp(new FileSystemResource(DEFAULT_FILE_PATH).getFile());
                     return RepeatStatus.FINISHED;
                 }, transactionManager)
                 .build();
     }
-     **/
+
+     */
 
 
     // ============================================= READERS AND WRITERS =============================================
@@ -118,6 +119,7 @@ public class BatchConfig {
 
     @Bean
     public FlatFileItemWriter<Contract>  writerToCsv(){
+        // Convert an object ( in this case a contract object ) to an array of its parts.
         BeanWrapperFieldExtractor<Contract> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
         beanWrapperFieldExtractor.setNames(COLUMN_NAMES);
 
@@ -126,8 +128,8 @@ public class BatchConfig {
                 .headerCallback(writer -> writer.write(String.join(",",COLUMN_NAMES))) // Set the header values
                 .resource(new FileSystemResource(DEFAULT_FILE_PATH)) // Set the output directory
                 .delimited()
-                    .delimiter(",")
-                .fieldExtractor(beanWrapperFieldExtractor)
+                    .delimiter(",") // Each element is separated by commas.
+                    .fieldExtractor(beanWrapperFieldExtractor) // Use the extractor ( Convert from contract objet to array of its parts ).
                 .build();
     }
 }

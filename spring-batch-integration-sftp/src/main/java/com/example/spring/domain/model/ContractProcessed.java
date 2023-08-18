@@ -30,7 +30,10 @@ public class ContractProcessed {
     @Column(name = "policy_date", columnDefinition = "DATETIME")
     private LocalDateTime policyDate;
 
+    @Column(columnDefinition = "TINYINT")
     private boolean expired;
+
+    @Column(columnDefinition = "TINYINT")
     private boolean disabled;
 
 }

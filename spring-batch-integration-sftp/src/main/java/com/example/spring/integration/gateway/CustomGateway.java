@@ -8,6 +8,6 @@ import java.io.File;
 @MessagingGateway
 public interface CustomGateway {
     @Gateway(requestChannel = "toSftpChannel")
-    void sendToFtp(File file);
+    void sendToSftp(File file);
 
 }

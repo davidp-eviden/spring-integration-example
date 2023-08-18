@@ -15,8 +15,9 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "application.sftp")
 public class SftpConfig {
     private String host;
-    private Integer port;
+    private int port;
     private String user;
-    private String privateKey;
+    private String password;
     private String directory;
+    // private String privateKey;
 }

@@ -2,6 +2,8 @@ spring:
   batch:
     jdbc:
       initialize-schema: always
+    job:
+      enabled: true
   datasource:
     url: jdbc:mysql://localhost:3307/contracts_db?createDatabaseIfNotExist=true
     username: root
@@ -14,8 +16,8 @@ spring:
 
 # SFTP config
 application:
-  host: # 192.168....
-  port: # ...
-  user: # ...
-  privateKey: # classpath:id_rsa
-  directory: # /someDirectory
+  host: 0.0.0.0
+  port: 2222
+  user: user
+  password: password123
+  directory: /upload
