@@ -27,7 +27,9 @@ import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.SubscribableChannel;
 
+import java.util.Collections;
 import java.util.Date;
 
 @Configuration
@@ -41,20 +43,31 @@ public class IntegrationConfig {
         this.jobLauncher = jobLauncher;
     }
 
-    @Bean
-    public IntegrationFlow inbound() {
-        return IntegrationFlow.from(Http.inboundGateway("/launch")
-                        .requestMapping(m -> m.methods(HttpMethod.POST)))
-                .channel("launchJobsChannel")
-                .get();
-    }
-
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
     public void launchJobs() throws JobExecutionException {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
                 .addDate("date", new Date());
         this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+    }
+
+    @Bean
+    public IntegrationFlow inbound() {
+        return IntegrationFlow.from(Http.inboundGateway("/launch")
+                        .requestMapping(m -> m.methods(HttpMethod.POST))
+                        .statusCodeExpression("200") // Set the status code to 200
+                        .replyTimeout(300) // The program only has 300 ms to reply.
+                ) // The time this method has to solve the reply
+                .channel("launchJobsChannel")
+                .get();
+    }
+
+    @Bean
+    public IntegrationFlow outbound(){
+        return IntegrationFlow.from("launchJobsChannel")
+                .handle(Http.outboundGateway("/launch")
+                        .httpMethod(HttpMethod.POST))
+                .get();
     }
 
     /*
