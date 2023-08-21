@@ -62,6 +62,8 @@ public class IntegrationConfig {
                 .get();
     }
 
+
+    //TODO: Manage the response
     @Bean
     public IntegrationFlow outbound(){
         return IntegrationFlow.from("launchJobsChannel")
@@ -69,6 +71,7 @@ public class IntegrationConfig {
                         .httpMethod(HttpMethod.POST))
                 .get();
     }
+
 
     /*
         MessageChannel replyChannel = (MessageChannel) message.getHeaders().getReplyChannel();
@@ -86,9 +89,8 @@ public class IntegrationConfig {
         factory.setPort(config.getPort());
         factory.setUser(config.getUser());
         factory.setPassword(config.getPassword());
-        Resource privateKeyResource = new DefaultResourceLoader().getResource(config.getPrivateKey());
-        factory.setPrivateKey(privateKeyResource);
-
+        //Resource privateKeyResource = new DefaultResourceLoader().getResource(config.getPrivateKey());
+        //factory.setPrivateKey(privateKeyResource);
         return new CachingSessionFactory<>(factory);
     }
 
@@ -99,5 +101,5 @@ public class IntegrationConfig {
         sftpMessageHandler.setRemoteDirectoryExpression(new LiteralExpression(sftpConfig.getDirectory()));
         return sftpMessageHandler;
     }
-    */
+     */
 }
