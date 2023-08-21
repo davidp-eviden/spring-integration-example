@@ -47,15 +47,15 @@ public class IntegrationConfig {
 
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
-    public Message<?> launchJobs(Message<?> message) {
+    public Message<?> launchJobs() {
         try {
             JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
                     .addDate("date", new Date());
-            this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+            JobExecution jobExecution  = this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
 
             // Si el trabajo se ejecuta correctamente, se devuelve una respuesta exitosa.
-            return MessageBuilder.withPayload("Job launched successfully").build();
-        } catch (JobExecutionException e) {
+            return MessageBuilder.withPayload(String.format("The job was launched sucessfully with the following details: \n %s", jobExecution.toString())).build();
+        } catch (Exception e) {
             // Si se produce una excepción al ejecutar el trabajo, manejarla aquí.
             // Puedes devolver un mensaje de error o cualquier respuesta apropiada.
             return MessageBuilder.withPayload("Error launching job: " + e.getMessage()).build();
@@ -67,7 +67,7 @@ public class IntegrationConfig {
         return IntegrationFlow.from(Http.inboundGateway("/launch")
                         .requestMapping(m -> m.methods(HttpMethod.POST))
                         .replyTimeout(300) // The program only has 300 ms to reply.
-                ) // The time this method has to solve the reply
+                )
                 .channel("launchJobsChannel")
                 .get();
     }
@@ -91,14 +91,14 @@ public class IntegrationConfig {
             replyChannel.send(message);
     */
 
-    /*
     @Bean
     public SessionFactory<SftpClient.DirEntry> sftpSessionFactory(SftpConfig config){
-        DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory(true);
+        DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
         factory.setHost(config.getHost());
         factory.setPort(config.getPort());
         factory.setUser(config.getUser());
         factory.setPassword(config.getPassword());
+        factory.setAllowUnknownKeys(true);
         //Resource privateKeyResource = new DefaultResourceLoader().getResource(config.getPrivateKey());
         //factory.setPrivateKey(privateKeyResource);
         return new CachingSessionFactory<>(factory);
@@ -111,5 +111,4 @@ public class IntegrationConfig {
         sftpMessageHandler.setRemoteDirectoryExpression(new LiteralExpression(sftpConfig.getDirectory()));
         return sftpMessageHandler;
     }
-     */
 }

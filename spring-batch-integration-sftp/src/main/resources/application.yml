@@ -17,8 +17,8 @@ spring:
 # SFTP config
 application:
   sftp:
-    host: 0.0.0.0
+    host: localhost
     port: 22
     user: user
     password: password123
-    directory: /upload
+    directory: /upload # /home/user/upload

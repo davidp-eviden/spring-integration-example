@@ -46,13 +46,15 @@ public class BatchConfig {
     // ============================================= JOBS =============================================
     // move the data from contract table to contract_processed table ( in database ).
     @Bean
-    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository, CustomJobExecutionListener listener, Step convertToCsvStep) {
+    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository, CustomJobExecutionListener listener, Step convertToCsvStep, Step fileToSftpStep) {
         return new JobBuilder("moveToOtherTableAndWriteInCsvJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener) // job listener
                 .start(moveToOtherTableStep).on("FAILED").fail() // If the moveToOtherTableStep fails - stop  the job
                 .from(moveToOtherTableStep).on("COMPLETED").to(convertToCsvStep) // Otherwise continue to the next step
-                .from(convertToCsvStep).on("FAILED").fail().end() // If the convertToCsvStep fails stop the job otherwise continue the execution.
+                // If the convertToCsvStep fails stop the job otherwise continue the execution.
+                .from(convertToCsvStep).on("FAILED").fail()
+                .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep).end()
                 .build();
     }
 
@@ -82,7 +84,6 @@ public class BatchConfig {
     }
 
 
-    /*
     @Bean
     public Step fileToSftpStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomGateway customGateway){
         return new StepBuilder("fileToSftpStep",jobRepository)
@@ -92,7 +93,6 @@ public class BatchConfig {
                 }, transactionManager)
                 .build();
     }
-     */
 
 
 

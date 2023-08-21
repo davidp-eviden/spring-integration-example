@@ -81,16 +81,6 @@
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.tomitribe.transformer</groupId>
-			<artifactId>transformer</artifactId>
-			<version>0.0.8</version>
-		</dependency>
-		<dependency>
-			<groupId>org.tomitribe.transformer</groupId>
-			<artifactId>transformer</artifactId>
-			<version>0.0.8</version>
-		</dependency>
 	</dependencies>
 
 	<build>
