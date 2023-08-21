@@ -25,6 +25,8 @@ import org.springframework.integration.http.inbound.HttpRequestHandlingMessaging
 import org.springframework.integration.http.inbound.RequestMapping;
 import org.springframework.integration.sftp.outbound.SftpMessageHandler;
 import org.springframework.integration.sftp.session.DefaultSftpSessionFactory;
+import org.springframework.integration.support.MessageBuilder;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.SubscribableChannel;
@@ -45,17 +47,25 @@ public class IntegrationConfig {
 
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
-    public void launchJobs() throws JobExecutionException {
-        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
-                .addDate("date", new Date());
-        this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+    public Message<?> launchJobs(Message<?> message) {
+        try {
+            JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
+                    .addDate("date", new Date());
+            this.jobLauncher.run(job, jobParametersBuilder.toJobParameters());
+
+            // Si el trabajo se ejecuta correctamente, se devuelve una respuesta exitosa.
+            return MessageBuilder.withPayload("Job launched successfully").build();
+        } catch (JobExecutionException e) {
+            // Si se produce una excepción al ejecutar el trabajo, manejarla aquí.
+            // Puedes devolver un mensaje de error o cualquier respuesta apropiada.
+            return MessageBuilder.withPayload("Error launching job: " + e.getMessage()).build();
+        }
     }
 
     @Bean
     public IntegrationFlow inbound() {
         return IntegrationFlow.from(Http.inboundGateway("/launch")
                         .requestMapping(m -> m.methods(HttpMethod.POST))
-                        .statusCodeExpression("200") // Set the status code to 200
                         .replyTimeout(300) // The program only has 300 ms to reply.
                 ) // The time this method has to solve the reply
                 .channel("launchJobsChannel")
