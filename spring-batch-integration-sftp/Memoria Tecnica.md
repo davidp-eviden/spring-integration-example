@@ -1,6 +1,6 @@
 # Memoria tecnica Spring Batch y Spring Integration
 
-## Spring Batch
+Spring Batch
 ---
 ### Qué es Spring Batch
 ***Spring Batch*** es un *framework* de trabajos ("*jobs*") por lotes ("*batch*") diseñado para el desarrollo de aplicaciones empresariales.
@@ -10,7 +10,7 @@ Información adicional en la [documentación oficial aqui](https://spring.io/pro
 
 En este proyecto, se puede ver la implementación en [BatchConfig.java](BatchConfig.java)
 
-### Cómo empezar ( David )
+### Cómo empezar
 
 Para empezar a usar spring batch se necesita implementar en tu proyecto de spring boot las siguientes dependencias ya sea con maven o con gradle. 
 
@@ -29,21 +29,82 @@ Usando **Gradle**
 ```gradle
 implementation 'org.springframework.batch:spring-batch-core:5.0.2'
 ```
-### Jobs ( Carlos )
-
+### Jobs
 #### Qué es un trabajo
+Un trabajo o Job es un proceso que encapsula una tarea o un conjunto de tareas relacionadas que deben ejecutarse en lotes. 
+Generalmente consta de uno o más pasos (Steps)que deben ejecutarse en un orden específico.
 #### Como ejecutar un trabajo
+Para ejecutar un trabajo en Spring Batch, debes configurar el contexto de la aplicación y crear el metodo con el Job. 
+El JobBuilder o JobLauncher es responsable de iniciar la ejecución del trabajo. 
+Una vez configurado, puedes invocar el Job con el nombre del trabajo que deseas ejecutar.
+```java
+public class BatchConfig {
+    
+    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository, CustomJobExecutionListener listener, Step convertToCsvStep, Step fileToSftpStep, Step newFileCompleted) {
+        return new JobBuilder("moveToOtherTableAndWriteInCsvJob", jobRepository)
+                .incrementer(new RunIdIncrementer())
+                .listener(listener) // job listener
+                .start(moveToOtherTableStep).on("FAILED").fail() // If the moveToOtherTableStep fails - stop  the job
+                .from(moveToOtherTableStep).on("COMPLETED").to(convertToCsvStep) // Otherwise continue to the next step
+                .from(convertToCsvStep).on("FAILED").fail()
+                .from(convertToCsvStep).on("COMPLETED").to(newFileCompleted)
+                .from(newFileCompleted).end()
+                .build();
+    }
+}
+```
+Una vez llamado el Job procederemos a empezar el trabajo, indicar los pasos en el orden adecuado y cerrar el trabajo.
+
 #### Como pasar parametros a un trabajo
+Como en el ejemplo anterior, Spring Batch te permite pasar parámetros a un trabajo al momento de su ejecución. Puedes definir parámetros en la configuración del trabajo y luego proporcionar valores concretos al ejecutarlo.
 
-### Steps ( Carlos )
-
+Más información de como configurar el Job en la [documentación oficial](https://docs.spring.io/spring-batch/docs/current/reference/html/job.html)
+### Steps
 #### Que es un step
+Un paso o Step es una unidad de trabajo individual que forma parte de un trabajo o Job. 
+Cada step tiene una función específica, como leer datos de una fuente externa, procesarlos y escribir el resultado en una ubicación deseada.
+Un Step podrá ser tan simple o complejo o de la tipología que el desarrollador determine oportuno.
 
 #### Como configurar un step
+Un step puede estar compuesto de tres elementos: reader, writer y processor.
+Los readers son responsables de obtener datos, los processors realizan transformaciones en los datos y los writers escriben los resultados en una fuente de datos.
+```java
+public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomChunkListener customChunkListener, CustomStepExecutionListener customStepExecutionListener) {
+        return new StepBuilder("moveToOtherTableStep", jobRepository)
+        .<Contract, ContractProcessed>chunk(5, transactionManager)
+        .listener(customChunkListener) // chunk listener
+        .listener(customStepExecutionListener) // step listener
+        .reader(reader()) // read from the contract table using repositoryItemReader
+        .processor(contract -> new ContractProcessed(contract.getPolicyId(), contract.getPolicy(), contract.getPolicySituation(), contract.getPolicyBrand(), contract.getPolicyDate(), contract.isExpired(), contract.isDisabled()))
+        .writer(writer()) // write  to the contract_processed table using repositoryItemWriter
+        .build();
+        }
+```
+Cabe destacar que un Chunk en los Step es una forma de procesar datos en bloques o fragmentos, en lugar de procesar cada registro individualmente. En lugar de leer, procesar y escribir cada registro uno por uno, se procesa un grupo (chunk) de registros a la vez que nosotros predeterminamos.
 
+Más información de como configurar el Step en la [documentación oficial](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html)
 #### Readers & writers
-
-### Processors ( Fernando )
+Los readers son componentes que se utilizan en un Step para leer datos de una fuente externa, como una base de datos, un archivo CSV o un servicio web. Proporcionan una interfaz para acceder a los datos y transformarlos en objetos que puedan ser procesados.
+```java
+public RepositoryItemReader<Contract> reader() {
+    return new RepositoryItemReaderBuilder<Contract>()
+    .name("reader")
+    .repository(contractRepository)
+    .methodName("findAll")
+    .sorts(Collections.singletonMap("policy", Sort.Direction.ASC))
+    .build();
+}
+```
+Los writers son componentes que se utilizan en un Step para escribir los resultados del proceso en una fuente de datos. Pueden ser utilizados para escribir en bases de datos, archivos, servicios web, entre otros.
+```java
+public RepositoryItemWriter<ContractProcessed> writer() {
+        return new RepositoryItemWriterBuilder<ContractProcessed>()
+                .repository(contractProcessedRepository)
+                .methodName("save")
+                .build();
+    }
+```
+### Processors
 
 #### Que es un processor y que hace
 
