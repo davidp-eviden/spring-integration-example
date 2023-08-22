@@ -6,9 +6,9 @@
 ***Spring Batch*** es un *framework* de trabajos ("*jobs*") por lotes ("*batch*") diseñado para el desarrollo de aplicaciones empresariales.
 Facilita la creación de trabajos y su despliegue, al ofrecer un sistema de procesamiento, reinicio de trabajos, salto de trabajos, administración de recursos y transacciones, y también herramientas addicionales como registro de informes u optimizaciones.
 
-Información addicional en la [documentación oficial aqui](https://spring.io/projects/spring-batch).
+Información adicional en la [documentación oficial aqui](https://spring.io/projects/spring-batch).
 
-En este projecto, se puede ver la implementación en [BatchConfig.java](BatchConfig.java)
+En este proyecto, se puede ver la implementación en [BatchConfig.java](BatchConfig.java)
 
 ### Cómo empezar ( David )
 
@@ -85,16 +85,18 @@ public class SpringBatchConfig {
 
 #### Cómo escuchar cuando se ejecuta un paso
 
+---
+
 ## Spring Integration
 
-### Qué es Spring Integration ( Fernando )
+### Qué es Spring Integration 
 
 Spring Integration es un framework que facilita la conexión entre sí mediante un paradigma de mensajería. 
 Con un diseño cuidadoso, estos flujos se pueden modularizar y también reutilizar a un nivel aún mayor.
 
-Información addicional en la [documentación oficial](https://spring.io/projects/spring-integration).
+Información adicional en la [documentación oficial](https://spring.io/projects/spring-integration).
 
-### Cómo empezar ( Angel )
+### Cómo empezar
 
 Para empezar a usar *Spring Integration* es necesario añadir las siguientes dependencias.
 Hay que notar que estas son las últimas versiones en la fecha que se escribió este documento, y se recomienda actualizarse si es necesario.
@@ -127,7 +129,7 @@ public IntegrationFlow inbound() {
 }
 ```
 
-Información addicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
+Información adicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
 
 ### SFTP ( David )
 
