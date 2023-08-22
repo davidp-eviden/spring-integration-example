@@ -11,7 +11,9 @@ import com.example.spring.integration.gateway.CustomGateway;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.data.RepositoryItemReader;
@@ -25,6 +27,7 @@ import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
 
@@ -54,9 +57,21 @@ public class BatchConfig {
                 .from(moveToOtherTableStep).on("COMPLETED").to(convertToCsvStep) // Otherwise continue to the next step
                 // If the convertToCsvStep fails stop the job otherwise continue the execution.
                 .from(convertToCsvStep).on("FAILED").fail()
-                .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep).end()
+                .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep)
+                .from(fileToSftpStep).on("FAILED").fail().end()
                 .build();
     }
+
+    /*
+    @Bean(name = "asyncJobLauncher")
+    public JobLauncher simpleJobLauncher(JobRepository jobRepository){
+        TaskExecutorJobLauncher taskExecutorJobLauncher = new TaskExecutorJobLauncher();
+        taskExecutorJobLauncher.setJobRepository(jobRepository);
+        taskExecutorJobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
+        return taskExecutorJobLauncher;
+    }
+
+     */
 
 
     // ============================================= STEPS =============================================
