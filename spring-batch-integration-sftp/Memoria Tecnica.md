@@ -89,7 +89,8 @@ public class SpringBatchConfig {
 
 ### Qué es Spring Integration ( Fernando )
 
-Spring Integration es un framework que facilita la conexión entre sí mediante un paradigma de mensajería. Con un diseño cuidadoso, estos flujos se pueden modularizar y también reutilizar a un nivel aún mayor.
+Spring Integration es un framework que facilita la conexión entre sí mediante un paradigma de mensajería. 
+Con un diseño cuidadoso, estos flujos se pueden modularizar y también reutilizar a un nivel aún mayor.
 
 Información addicional en la [documentación oficial](https://spring.io/projects/spring-integration).
 
