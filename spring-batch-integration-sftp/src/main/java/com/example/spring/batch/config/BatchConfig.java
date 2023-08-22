@@ -16,6 +16,7 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.launch.support.TaskExecutorJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemReader;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.data.builder.RepositoryItemReaderBuilder;
@@ -31,11 +32,13 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.data.domain.Sort;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import java.io.File;
 import java.util.Collections;
 
 @Configuration
 public class BatchConfig {
     private final String DEFAULT_FILE_PATH = "src/main/resources/data/contracts.csv";
+    private final String COMPLETED_PATH = "src/main/resources/data/JobCompleted.txt";
     private final String[] COLUMN_NAMES = new String[]{"policyId", "policy", "policySituation", "policyBrand", "policyDate", "expired", "disabled"};
     private final ContractRepository contractRepository;
     private final ContractProcessedRepository contractProcessedRepository;
@@ -49,7 +52,7 @@ public class BatchConfig {
     // ============================================= JOBS =============================================
     // move the data from contract table to contract_processed table ( in database ).
     @Bean
-    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository, CustomJobExecutionListener listener, Step convertToCsvStep, Step fileToSftpStep) {
+    public Job moveToOtherTableAndWriteInCsvJob(Step moveToOtherTableStep, JobRepository jobRepository, CustomJobExecutionListener listener, Step convertToCsvStep, Step fileToSftpStep,Step newFileCompleted) {
         return new JobBuilder("moveToOtherTableAndWriteInCsvJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener) // job listener
@@ -57,8 +60,10 @@ public class BatchConfig {
                 .from(moveToOtherTableStep).on("COMPLETED").to(convertToCsvStep) // Otherwise continue to the next step
                 // If the convertToCsvStep fails stop the job otherwise continue the execution.
                 .from(convertToCsvStep).on("FAILED").fail()
-                .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep)
-                .from(fileToSftpStep).on("FAILED").fail().end()
+              //  .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep)
+              //  .from(fileToSftpStep).on("FAILED").fail()
+                .from(convertToCsvStep).on("COMPLETED").to(newFileCompleted)
+                .from(newFileCompleted).end()
                 .build();
     }
 
@@ -109,6 +114,17 @@ public class BatchConfig {
                 .build();
     }
 
+    @Bean
+    public Step newFileCompleted(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomChunkListener chunkListener, CustomStepExecutionListener customStepExecutionListener){
+            return new StepBuilder("convertToCsvStep", jobRepository)
+                    .<Contract, Contract>chunk(5, transactionManager)
+                    .listener(chunkListener) // chunk listener
+                    .listener(customStepExecutionListener) // step listener
+                    .reader(reader()) // read from the contract table
+                    .writer(writerCompletedJob()) // write to the csv file
+                    .build();
+        }
+
 
 
     // ============================================= READERS AND WRITERS =============================================
@@ -143,6 +159,21 @@ public class BatchConfig {
                 .resource(new FileSystemResource(DEFAULT_FILE_PATH)) // Set the output directory
                 .delimited()
                 .delimiter(",") // Each element is separated by commas.
+                .fieldExtractor(beanWrapperFieldExtractor) // Use the extractor ( Convert from contract objet to array of its parts ).
+                .build();
+    }
+
+    @Bean
+    public ItemWriter<Contract> writerCompletedJob() {
+        // Convert an object ( in this case a contract object ) to an array of its parts.
+        BeanWrapperFieldExtractor<Contract> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
+        beanWrapperFieldExtractor.setNames(COLUMN_NAMES);
+
+        return new FlatFileItemWriterBuilder<Contract>()
+                .name("writerCompletedJob")
+                .headerCallback(writer -> writer.write("Completed Job successfully"))
+                .resource(new FileSystemResource(COMPLETED_PATH))
+                .delimited()
                 .fieldExtractor(beanWrapperFieldExtractor) // Use the extractor ( Convert from contract objet to array of its parts ).
                 .build();
     }
