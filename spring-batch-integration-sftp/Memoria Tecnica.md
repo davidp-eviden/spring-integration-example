@@ -2,7 +2,7 @@
 
 ## Spring Batch
 ---
-### Qué es Spring Batch ( Angel )
+### Qué es Spring Batch
 ***Spring Batch*** es un *framework* de trabajos ("*jobs*") por lotes ("*batch*") diseñado para el desarrollo de aplicaciones empresariales.
 Facilita la creación de trabajos y su despliegue, al ofrecer un sistema de procesamiento, reinicio de trabajos, salto de trabajos, administración de recursos y transacciones, y también herramientas addicionales como registro de informes u optimizaciones.
 
@@ -47,20 +47,49 @@ implementation 'org.springframework.batch:spring-batch-core:5.0.2'
 
 #### Que es un processor y que hace
 
+El processor es el elemento responsable tratar la información obtenida por el reader, su uso no es obligatorio. Es donde se aplica lógica de negocio si se requiere de ella.
+
 #### Como convertir o procesar los datos
+
+Para ello tienes que crear un método de tipo ItemProcessor, o crear una clase que lo implemente.
+
+Esto sería un ejemplo de una implementación de un ItemProcessor, a través de una clase.
+```java
+public class StudentItemProcessor implements ItemProcessor<Student, Student> {
+    @Override
+    public Student process(Student student) throws Exception {
+        //some business logic
+    }
+}
+```
+
+Y este otro a través de un método de tipo ItemProcessor.
+
+```java
+@Configuration
+public class SpringBatchConfig {
+    @Bean
+    public ItemProcessor<Student, Student> itemProcessor() {
+        return new itemProcessor();
+        //some business logic
+    }
+}
+```
 
 ### Listeners ( David )
 
 
 
-#### Como escuchar cada chunk
-#### Como escuchar cuando se ejecuta un trabajo
+#### Cómo escuchar cada chunk
+#### Cómo escuchar cuando se ejecuta un trabajo
 
-#### Como escuchar cuando se ejecuta un paso
+#### Cómo escuchar cuando se ejecuta un paso
 
 ## Spring Integration
----
+
 ### Qué es Spring Integration ( Fernando )
+
+Spring Integration es un framework que facilita la conexión entre sí mediante un paradigma de mensajería. Con un diseño cuidadoso, estos flujos se pueden modularizar y también reutilizar a un nivel aún mayor.
 
 Información addicional en la [documentación oficial](https://spring.io/projects/spring-integration).
 
@@ -99,18 +128,20 @@ public IntegrationFlow inbound() {
 
 Información addicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
 
-#### Como crear un endpoint
-#### Como ejecutar los trabajos a traves de una peticion http
-
 ### SFTP ( David )
 
 
 
 
 
-#### Como enviar un archivo via sftp
+#### Cómo enviar un archivo via sftp
 
 
 
 ## References
 ---
+Processor:
+
+[ItemProcessor example](https://www.baeldung.com/introduction-to-spring-batch)
+
+[Processor teoría](https://www.adictosaltrabajo.com/2016/03/14/aprende-spring-batch-con-ejemplos/)
