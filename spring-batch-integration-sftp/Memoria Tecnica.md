@@ -157,12 +157,119 @@ public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactio
 
 ### Listeners ( David )
 
+> En los siguientes ejemplos se mostrara el manejo de las ejecuciones de trabajos, pasos y chunks y se hara uso de la anotacion `@Slf4j` la cual nos permite crear un objeto de tipo [Logger](https://docs.oracle.com/javase/8/docs/api/java/util/logging/Logger.html) con el que se enviaran mensajes en consola mostrando la informacion.
+#### Como escuchar cuando se ejecuta un trabajo
+
+Para poder escuchar las ejecuciones de un trabajo podemos crear un clase personalizada que extienda de la clase principal `JobExecutionListener` encargada de escuchar las ejecuciones de un trabajo.
+
+##### Paso 1:  Crear una clase personalizada que extienda de la clase principal JobExecutionListener
+
+```java
+@Slf4j
+@Component
+public class CustomJobExecutionListener implements JobExecutionListener{
+	@Override
+	public void afterJob(JobExecution jobExecution){
+		switch(jobExecution.getStatus){
+			case STARTED -> log.info("El trabajo ha empezado");
+			case FAILED -> log.info("El trabajo ha fallado");
+			case COMPLETED -> log.info("El trabajo se ha completado con exito");
+		}
+	}
+}
+```
 
 
-#### Cómo escuchar cada chunk
-#### Cómo escuchar cuando se ejecuta un trabajo
+* Con el metodo `afterJob(..)` podemos controlar controlar **despues de que se ejecute un trabajo** algunas funciones logicas.  ( En este caso se envia un mensaje dependiendo por consola dependiendo del
 
-#### Cómo escuchar cuando se ejecuta un paso
+##### Paso 2: Implementar el escuchador en el trabajo
+
+A continuacion se mostrara  como implementar dicho escuchador en un trabajo
+
+```java
+@Bean
+public Job simpleJob(JobRepository jobRepository, CustomJobExecutionListener customJobExecutionListeer){
+	return new JobBuilder("simpleJob",jobRepository)
+		.listener(customJobExecutionListener)
+		...
+}
+```
+
+* En este caso para poder implementar el escuchador utilizamos el metodo `listener(...)` donde le  tenemos que pasar un objeto de tipo `JobExecutionListener` o que herede de dicha clase, en nuestro caso hemos creado una clase personalizada que si hereda de `JobExecutionListener`.
+#### Como escuchar cada chunk
+
+A continuacion veremos un ejemplo de como poder escuchar cuando un [chunk](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#chunkOrientedProcessing)  sea leido.
+##### Paso 1:  Crear una clase personalizada que extienda de la clase principal ChunkListener
+
+```java
+@Slf4j
+@Component
+public class CustomChunkListener implements ChunkListener{
+	@Override
+	public void afterChunk(ChunkContext context){
+		log.info("Despues del chunk");
+	}
+
+	@Override
+	public void beforeChunk(ChunkContext context){
+		log.info("Antes del chunk");
+	}
+}
+```
+
+* `beforeChunk` nos permite controlar el proceso antes de que un chunk sea leido.
+* `afterChunk` nos permite controlar el proceso despues de que un chunk sea leido.
+
+##### Paso 2: Implementar el escuchador en el paso
+
+A continuacion se mostrara  como implementar dicho escuchador en un trabajo
+
+```java
+@Bean
+public Step simpleStep(PlatformTransactionManager transactionManager, JobRepository jobRepository, CustomChunkListener customChunkListener){
+	return new StepBuilder("simpleStep", jobRepository)
+		...
+		.listener(customChunkListener)
+}
+```
+
+#### Como escuchar cuando se ejecuta un paso
+
+A continuacion veremos un ejemplo donde crearemos una clase personalizada que extienda de la clase `StepExecutionListener` la cual nos permitira sobreescribir los metodos para manejar y controlar los pasos.
+
+##### Paso 1:  Crear una clase personalizada que extienda de la clase principal StepExecutionListener
+
+```java
+@Slf4j
+@Component
+public class CustomStepExecutionListener implements StepExecutionListener{
+	@Override
+	public void afterStep(StepExecution stepExecution){
+		log.info("Despues del paso");
+	}
+
+	@Override
+	public void beforeStep(StepExecution stepExecution){
+		log.info("Antes del paso");
+	}
+}
+```
+
+* `afterStep` nos permite controlar el proceso antes de que un paso sea ejecutado.
+* `beforeStep` nos permite controlar el proceso despues de que un paso sea ejecutado.
+##### Paso 2: Implementar el escuchador en el paso
+
+A continuacion se mostrara  como implementar dicho escuchador en un paso
+
+```java
+@Bean
+public Step simpleStep(PlatformTransactionManager transactionManager, JobRepository jobRepository, CustomStepExecutionListener customStepExecutionListener){
+	return new StepBuilder("simpleStep", jobRepository)
+		...
+		.listener(customStepExecutionListener)
+}
+```
+
 
 ---
 
@@ -319,7 +426,7 @@ public Step sendToSftpStep(JobRepository jobRepository, PlatformTransactionManag
 
 
 ## References
----
+
 Processor:
 
 [ItemProcessor example](https://www.baeldung.com/introduction-to-spring-batch)
