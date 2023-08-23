@@ -56,14 +56,13 @@ public class BatchConfig {
         return new JobBuilder("moveToOtherTableAndWriteInCsvJob", jobRepository)
                 .incrementer(new RunIdIncrementer())
                 .listener(listener) // job listener
-                .start(moveToOtherTableStep).on("FAILED").fail() // If the moveToOtherTableStep fails - stop  the job
+                .start(moveToOtherTableStep).on("FAILED").stop() // If the moveToOtherTableStep fails - stop  the job
                 .from(moveToOtherTableStep).on("COMPLETED").to(convertToCsvStep) // Otherwise continue to the next step
                 // If the convertToCsvStep fails stop the job otherwise continue the execution.
-                .from(convertToCsvStep).on("FAILED").fail()
+                .from(convertToCsvStep).on("FAILED").stop()
               //  .from(convertToCsvStep).on("COMPLETED").to(fileToSftpStep)
               //  .from(fileToSftpStep).on("FAILED").fail()
-                .from(convertToCsvStep).on("COMPLETED").to(newFileCompleted)
-                .from(newFileCompleted).end()
+                .from(convertToCsvStep).on("COMPLETED").to(newFileCompleted).end()
                 .build();
     }
 

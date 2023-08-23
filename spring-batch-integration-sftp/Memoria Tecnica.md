@@ -252,12 +252,70 @@ Los nombres de los canales **deben de ser únicos**.
 
 ### SFTP ( David )
 
+#### Que permite hacer spring integration SFTP
 
+Spring integration sftp te permite el envio de ficheros y mensajes a traves del protocolo [SFTP](https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol)
+#### Como enviar un archivo via sftp
 
+Los siguiente pasos muestran como enviar un fichero sftp y encapsularlo en un paso para ser ejecutado a traves de un trabajo.
 
+##### Paso 1: Definimos una interfaz que funcionara como puerta de enlace y se utilizara para definir los metodos que se llamaran a traves de un determinado canal
 
-#### Cómo enviar un archivo via sftp
+```java
+@MessagingGateway
+public interface CustomGateway{
+	@Gateway(requestChannel = "sendToSftpChannel")
+	void sendToSftp(File file);
+}
+```
 
+En este paso estamos definiendo que una vez el metodo sea implementado funcionara a traves del canal `sendToSftpChannel`.
+
+##### Paso 2: Definimos la sesion
+
+```java
+public class IntegrationConfig{
+	@Bean
+	public SessionFactory<SftpClient.DirEntry> sessionFactory(){
+		DefaultSessionFactory factory = new DefaultSessionFactory();
+		factory.setHost("192..."); 
+		factory.setPort(22); 
+		factory.setUser(""); 
+		factory.setPassword("");
+		factory.setAllowUknownKeys(true);
+		return new CachingSessionFactory<>(factory);
+	}
+}
+```
+
+##### Paso 3: Definimos una funcion que en caso de que un servicio se suscriba al canal `sendToSftpChannel` dicho metodo sera ejecutado.
+
+```java
+@Bean
+@ServiceActivator(inputChannel = "sendToSftpChannel")
+public MessageHandler handler(){
+	SftpMessageHandler sftpMessageHandler = new SftpMessageHandler();
+	sftpMessageHandler.setRemoteDirectoryExpression(new LiteralExpression("/directorioDestino"));
+
+	return sftpMessageHandler;
+}
+```
+
+##### Paso 4: Definimos el envio del archivo en un Step utilizando **tasklet**
+
+```java
+@Bean
+public Step sendToSftpStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomGateway customGateway){
+	return new StepBuilder("sendToSftpStep", jobRepository)
+		.tasklet( (contribution, chunkContext) -> {
+			customGateway.sendToSftp(new FileSystemResource("filePath").getFile())
+			return RepeatStatus.FINISHED;
+		}, transactionManager)
+		.build();
+}
+```
+
+* `tasklet()` permite crear pasos para aquellas funciones en las que no se tenga que hacer uso de reader o writers. En este caso esta tarea solo llamaria al metodo que se definio en la interfaz **CustomGateway** y se le pasa por parametro un archivo. Para mas informacion acerca de las **tasklets** consulte el siguiente [enlace](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#taskletStep)
 
 
 ## References

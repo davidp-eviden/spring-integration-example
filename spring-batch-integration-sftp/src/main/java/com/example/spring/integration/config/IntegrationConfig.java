@@ -31,38 +31,26 @@ public class IntegrationConfig {
     @Qualifier("asyncJobLauncher")
     private final JobLauncher jobLauncher;
 
-    public IntegrationConfig(Job moveToOtherTableAndWriteInCsvJob, JobLauncher jobLauncher) {
+    public IntegrationConfig(Job moveToOtherTableAndWriteInCsvJob, @Qualifier("asyncJobLauncher") JobLauncher jobLauncher) {
         this.job = moveToOtherTableAndWriteInCsvJob;
         this.jobLauncher = jobLauncher;
     }
 
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
-    public Message<?> launchJobs() {
-        try {
-            JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
-                    .addDate("date", new Date());
-            JobExecution jobExecution  = this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
-
-            // Si el trabajo se ejecuta correctamente, se devuelve una respuesta exitosa.
-            return MessageBuilder
-                    .withPayload(String.format("The job was launched successfully with the following details: \n %s", jobExecution.toString()))
-                    .build();
-        } catch (Exception e) {
-            // Si se produce una excepción al ejecutar el trabajo, manejarla aquí.
-            // Puedes devolver un mensaje de error o cualquier respuesta apropiada.
-            return MessageBuilder.withPayload("Error launching the job with the following error: " + e.getMessage()).build();
-        }
+    public ExitStatus launchJobs() throws JobExecutionException{
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
+                .addDate("date", new Date());
+        return this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters()).getExitStatus();
     }
 
     @Bean
     public IntegrationFlow inbound() {
         return IntegrationFlow.from(Http.inboundGateway("/launch")
-                        .requestMapping(m -> m.methods(HttpMethod.POST)).replyTimeout(10000))
+                        .requestMapping(m -> m.methods(HttpMethod.POST)))
                 .channel("launchJobsChannel") // Subscription to the launchJobsChannel
                 .get();
     }
-
 
     /*
     @Bean
@@ -78,7 +66,7 @@ public class IntegrationConfig {
      */
 
     @Bean
-    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory(SftpConfig config){
+    public SessionFactory<SftpClient.DirEntry> sftpSessionFactory(SftpConfig config) {
         DefaultSftpSessionFactory factory = new DefaultSftpSessionFactory();
         factory.setHost(config.getHost());
         factory.setPort(config.getPort());
@@ -91,8 +79,9 @@ public class IntegrationConfig {
     }
 
     @Bean
-    @ServiceActivator(inputChannel = "toSftpChannel") // When the sendToSftp() function is called this channel will be activated.
-    public MessageHandler handler (SftpConfig sftpConfig){
+    @ServiceActivator(inputChannel = "toSftpChannel")
+    // When the sendToSftp() function is called this channel will be activated.
+    public MessageHandler handler(SftpConfig sftpConfig) {
         SftpMessageHandler sftpMessageHandler = new SftpMessageHandler(sftpSessionFactory(sftpConfig));
         // Specify the remote directory to send files
         sftpMessageHandler.setRemoteDirectoryExpression(new LiteralExpression(sftpConfig.getDirectory()));
