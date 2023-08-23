@@ -8,7 +8,6 @@ Facilita la creación de trabajos y su despliegue, al ofrecer un sistema de proc
 
 Información adicional en la [documentación oficial aqui](https://spring.io/projects/spring-batch).
 
-En este proyecto, se puede ver la implementación en [BatchConfig.java](BatchConfig.java)
 
 ### Cómo empezar
 
@@ -34,7 +33,7 @@ implementation 'org.springframework.batch:spring-batch-core:5.0.2'
 Un trabajo o Job es un proceso que encapsula una tarea o un conjunto de tareas relacionadas que deben ejecutarse en lotes. 
 Generalmente consta de uno o más pasos (Steps)que deben ejecutarse en un orden específico.
 #### Como ejecutar un trabajo
-Para ejecutar un trabajo en Spring Batch, debes configurar el contexto de la aplicación y crear el metodo con el Job. 
+Para ejecutar un trabajo, debes configurar el contexto de la aplicación y crear el metodo con el Job. 
 El JobBuilder o JobLauncher es responsable de iniciar la ejecución del trabajo. 
 Una vez configurado, puedes invocar el Job con el nombre del trabajo que deseas ejecutar.
 ```java
@@ -54,6 +53,16 @@ public class BatchConfig {
 }
 ```
 Una vez llamado el Job procederemos a empezar el trabajo, indicar los pasos en el orden adecuado y cerrar el trabajo.
+
+Finalmente, para ejecutar el trabajo debemos llamar al JobLauncher y pasarle el job que queremos ejecutar con sus parametros.
+
+```java
+    try {
+        jobLauncher.run(job, new JobParameters());
+    } catch (JobExecutionException e){
+        ...
+    }
+```
 
 #### Como pasar parametros a un trabajo
 Como en el ejemplo anterior, Spring Batch te permite pasar parámetros a un trabajo al momento de su ejecución. Puedes definir parámetros en la configuración del trabajo y luego proporcionar valores concretos al ejecutarlo.
