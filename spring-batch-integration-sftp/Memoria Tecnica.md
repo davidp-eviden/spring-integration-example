@@ -222,7 +222,7 @@ public class CustomChunkListener implements ChunkListener{
 
 ##### Paso 2: Implementar el escuchador en el paso
 
-A continuacion se mostrara  como implementar dicho escuchador en un trabajo
+A continuacion se mostrara  como implementar dicho escuchador en un paso.
 
 ```java
 @Bean
