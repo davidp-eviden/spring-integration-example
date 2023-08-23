@@ -113,12 +113,11 @@ El processor es el elemento responsable tratar la información obtenida por el r
 #### Como convertir o procesar los datos
 
 Para ello tienes que crear un método de tipo ItemProcessor, o crear una clase que lo implemente.
-
 Esto sería un ejemplo de una implementación de un ItemProcessor, a través de una clase.
 ```java
-public class StudentItemProcessor implements ItemProcessor<Student, Student> {
+public class ContractItemProcessor implements ItemProcessor<Contract, Contract> {
     @Override
-    public Student process(Student student) throws Exception {
+    public Contract process(Contract contract) throws Exception {
         //some business logic
     }
 }
@@ -130,11 +129,21 @@ Y este otro a través de un método de tipo ItemProcessor.
 @Configuration
 public class SpringBatchConfig {
     @Bean
-    public ItemProcessor<Student, Student> itemProcessor() {
+    public ItemProcessor<Contract, Contract> ProcessorContract() {
         return new itemProcessor();
         //some business logic
     }
 }
+```
+Se implemntaría llamandole desde el propio step.
+```java
+public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomChunkListener customChunkListener, CustomStepExecutionListener customStepExecutionListener) {
+        return new StepBuilder("moveToOtherTableStep", jobRepository)
+        .<Contract, ContractProcess>chunk(5, transactionManager)
+        ...
+        .processor(ProcessorContract())
+        .build();
+        }
 ```
 
 ### Listeners ( David )
