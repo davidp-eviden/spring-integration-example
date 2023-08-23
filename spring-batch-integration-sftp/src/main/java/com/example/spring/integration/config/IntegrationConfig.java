@@ -28,7 +28,6 @@ import java.util.List;
 @EnableIntegration
 public class IntegrationConfig {
     private final Job job;
-    @Qualifier("asyncJobLauncher")
     private final JobLauncher jobLauncher;
 
     public IntegrationConfig(Job moveToOtherTableAndWriteInCsvJob, @Qualifier("asyncJobLauncher") JobLauncher jobLauncher) {
