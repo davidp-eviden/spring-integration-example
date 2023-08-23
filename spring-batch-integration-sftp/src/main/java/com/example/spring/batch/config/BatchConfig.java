@@ -67,7 +67,7 @@ public class BatchConfig {
                 .build();
     }
 
-    /*
+
     @Bean(name = "asyncJobLauncher")
     public JobLauncher simpleJobLauncher(JobRepository jobRepository){
         TaskExecutorJobLauncher taskExecutorJobLauncher = new TaskExecutorJobLauncher();
@@ -76,7 +76,6 @@ public class BatchConfig {
         return taskExecutorJobLauncher;
     }
 
-     */
 
 
     // ============================================= STEPS =============================================

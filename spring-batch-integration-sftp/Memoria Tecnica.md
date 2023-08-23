@@ -188,18 +188,58 @@ implementation 'org.springframework.integration:spring-integration-core:6.1.2'
 ```
 
 ### HTTP
-Una configuración HTTP nos permite ejecutar trabajos al hacer una petición HTTP. Por ejemplo:
+Una configuración HTTP nos permite ejecutar trabajos al hacer una petición HTTP a un gateway.
+Es necesario que este en una clase marcada con ``@EnableIntegration``
+
+Información adicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
+
+#### Como crear un endpoint
+
+Se necesita un ``@Bean`` de ``IntegrationFlow``. Este se subscribirá a un canal, que tiene que estar definido.
 ```java
 @Bean
 public IntegrationFlow inbound() {
 	return IntegrationFlow.from(Http.inboundGateway("/launch")
 		.requestMapping(m -> m.methods(HttpMethod.POST)).replyTimeout(10000))
-		.channel("launchJobsChannel") // Subscription to the launchJobsChannel
 		.get();
 }
 ```
+#### Como ejecutar los trabajos a traves de una peticion HTTP
 
-Información adicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
+Una vez creado el *endpoint* hay que conectarlo con un canal ("*channel*"). 
+Para esto, modificamos el *endpoint* anterior para especificar el canal.
+```java
+    @Bean
+    public IntegrationFlow inbound() {
+        return IntegrationFlow.from(Http.inboundGateway("/launch")
+                        .requestMapping(m -> m.methods(HttpMethod.POST)).replyTimeout(10000))
+                .channel("launchJobsChannel") // Subscription to the launchJobsChannel
+                .get();
+    }
+```
+
+El tipo de dato que el método devuelve puede ser distinto al especificado, pero es necesario tener la anotación ``@ServiceActivator`` con ``inputChannel`` con un nombre descriptivo que queramos.
+
+Los nombres de los canales **deben de ser únicos**.
+```java
+    @ServiceActivator(inputChannel = "launchJobsChannel")
+    public Message<?> launchJobs() {
+        try {
+            JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
+                    .addDate("date", new Date());
+            JobExecution jobExecution  = this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
+
+            // Si el trabajo se ejecuta correctamente, se devuelve una respuesta exitosa.
+            return MessageBuilder
+                    .withPayload(String.format("The job was launched successfully with the following details: \n %s", jobExecution.toString()))
+                    .build();
+        } catch (Exception e) {
+            // Si se produce una excepción al ejecutar el trabajo, manejarla aquí.
+            // Puedes devolver un mensaje de error o cualquier respuesta apropiada.
+            return MessageBuilder.withPayload("Error launching the job with the following error: " + e.getMessage()).build();
+        }
+    }
+```
 
 ### SFTP ( David )
 
