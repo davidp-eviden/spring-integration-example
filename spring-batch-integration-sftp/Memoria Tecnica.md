@@ -155,7 +155,7 @@ public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactio
         }
 ```
 
-### Listeners ( David )
+### Listeners
 
 > En los siguientes ejemplos se mostrara el manejo de las ejecuciones de trabajos, pasos y chunks y se hara uso de la anotacion `@Slf4j` la cual nos permite crear un objeto de tipo [Logger](https://docs.oracle.com/javase/8/docs/api/java/util/logging/Logger.html) con el que se enviaran mensajes en consola mostrando la informacion.
 #### Como escuchar cuando se ejecuta un trabajo
@@ -357,7 +357,7 @@ Los nombres de los canales **deben de ser únicos**.
     }
 ```
 
-### SFTP ( David )
+### SFTP
 
 #### Que permite hacer spring integration SFTP
 
