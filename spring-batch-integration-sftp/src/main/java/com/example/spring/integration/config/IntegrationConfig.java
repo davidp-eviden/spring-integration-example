@@ -63,9 +63,14 @@ public class IntegrationConfig {
                 return jobExecution.getExitStatus().addExitDescription("Unknown").replaceExitCode("404");
             }
 
+            case STARTING: {
+
+                return jobExecution.getExitStatus().addExitDescription("Running successfully").replaceExitCode("Starting");
+            }
+
             default: {
 
-                return jobExecution.getExitStatus().addExitDescription("Running successfully").replaceExitCode("Completed");
+                return jobExecution.getExitStatus();
             }
         }
     }
