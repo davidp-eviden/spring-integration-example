@@ -180,7 +180,7 @@ public class CustomJobExecutionListener implements JobExecutionListener{
 ```
 
 
-* Con el metodo `afterJob(..)` podemos controlar controlar **despues de que se ejecute un trabajo** algunas funciones logicas.  ( En este caso se envia un mensaje dependiendo por consola dependiendo del
+* Con el metodo `afterJob(..)` podemos controlar controlar **despues de que se ejecute un trabajo** algunas funciones logicas.  ( En este caso se envia un mensaje por consola dependiendo del estado del trabajo.
 
 ##### Paso 2: Implementar el escuchador en el trabajo
 
@@ -255,11 +255,11 @@ public class CustomStepExecutionListener implements StepExecutionListener{
 }
 ```
 
-* `afterStep` nos permite controlar el proceso antes de que un paso sea ejecutado.
-* `beforeStep` nos permite controlar el proceso despues de que un paso sea ejecutado.
+* `beforeStep` nos permite controlar el proceso antes de que un paso sea ejecutado.
+* `afterStep` nos permite controlar el proceso despues de que un paso sea ejecutado.
 ##### Paso 2: Implementar el escuchador en el paso
 
-A continuacion se mostrara  como implementar dicho escuchador en un paso
+A continuacion se mostrara  como implementar dicho escuchador en un paso:
 
 ```java
 @Bean
