@@ -68,6 +68,96 @@ Finalmente, para ejecutar el trabajo debemos llamar al JobLauncher y pasarle el 
 Como en el ejemplo anterior, Spring Batch te permite pasar parámetros a un trabajo al momento de su ejecución. Puedes definir parámetros en la configuración del trabajo y luego proporcionar valores concretos al ejecutarlo.
 
 Más información de como configurar el Job en la [documentación oficial](https://docs.spring.io/spring-batch/docs/current/reference/html/job.html)
+
+
+#### Como lanzar trabajos asincronos
+
+A continuacion veremos como crear un trabajo asincrono en spring batch creando nuestra propia implementacion de [JobLauncher](https://docs.spring.io/spring-batch/docs/current/api/org/springframework/batch/core/launch/JobLauncher.html) y llamandolo a traves de el nombre que le hemos definido haciendo uso de  la anotacion `@Qualifier()`.
+##### Paso 1: Creamos nuestro propio bean en el que los trabajos lanzados seran asincronos
+
+```java
+@Bean(name = "asyncJobLauncher")
+public JobLauncher asyncJobLauncher(JobRepository jobRepository){
+	TaskExecutorJobLauncher taskExecutorJobLauncher = new TaskExecutorJobLauncher();
+	taskExecutorJobLauncher.setJobRepository(jobRepository);
+	taskExecutorJobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
+
+	return taskExecutorJobLauncher;
+}
+```
+
+* `JobRepository` interfaz que implementa funciones CRUD para la ejecucion de un trabajo. Es necesaria su implementacion.
+* `setTaskExecutor(new SimpleAsyncTaskExecutor())` en este metodo estamos indicando que por cada invocacion se iniciara un hilo diferente. Para mas informacion consulte el siguiente [enlace](https://docs.spring.io/spring-framework/reference/integration/scheduling.html#scheduling-task-executor-types)
+
+##### Paso 2: Creamos una instancia de nuestro bean personalizado y lo llamaremos
+
+```java
+public class MyClass{
+	private final JobLauncher jobLauncher;
+
+	public MyClass(@Qualifier("asyncJoblauncher") JobLauncher jobLauncher){
+		this.jobLauncher = jobLauncher;
+	}
+}
+```
+
+* `@Qualifier` con esta anotacion podemos llamar a un **Bean** a traves de su nombre. En este caso llamamos al bean personalizado que creamos en el paso anterior a traves del nombre `asyncJobLauncher`
+
+
+##### Paso 3: Arrancar el trabajo
+
+Una buena manera de comprobar la asincronia de los trabajos es lanzar dichos trabajos a traves de una peticion HTTP en el que se pueda comprobar que la respuesta de la peticion es inmediata sin embargo el trabajo puede seguir ejecutandose.
+
+A continuacion se muestra como lanzar los trabajos a traves de un servicio http utilizando spring web.
+
+```java
+public class MyController{
+
+	private final JobLauncher;
+	private final Job;
+
+	public MyController(@Qualifier("asyncJobLauncher") JobLauncher jobLauncher,Job job){
+		this.jobLauncher = jobLauncher;
+		this.job = job;
+	}
+
+	@PostMapping("/launch")
+	public void handle(){
+		this.jobLauncher.run(this.job, new JobParameters());
+	}
+}
+```
+
+
+Otra manera seria haciendo uso de la integracion con http que tiene Spring Integration, en tal caso seria de la siguiente manera:
+
+```java
+public class MyClass{
+	private JobLauncher jobLauncher;
+	private Job job;
+
+	public MyClass(@Qualifier("asyncJobLauncher") Joblauncher jobLauncher, Job job){
+		this.jobLauncher = jobLauncher;
+		this.job = job;
+	}
+
+	@Bean
+	@ServiceAtivator(inputChannel = "launchJobsChannel")
+	public ExitStatus launchJobs() throws JobExecutionException{
+		JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
+			.addDate("date", new Date());
+		this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
+	}
+
+	@Bean
+	public IntegrationFlow inbound(){
+		return IntegrationFlow.from(Http.inboundGateway("/launch")
+				.requestMapping(m -> m.methods(HttpMethods.POST)))
+			.channel("launchJobsChannel")
+		.get();
+	}
+}
+```
 ### Steps
 #### Que es un step
 Un paso o Step es una unidad de trabajo individual que forma parte de un trabajo o Job. 
