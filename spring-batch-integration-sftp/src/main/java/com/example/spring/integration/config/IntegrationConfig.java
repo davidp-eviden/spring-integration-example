@@ -37,11 +37,39 @@ public class IntegrationConfig {
 
     // This method is activated when someone subscribes to the launchJobsChannel.
     @ServiceActivator(inputChannel = "launchJobsChannel")
-    public ExitStatus launchJobs() throws JobExecutionException{
+    public ExitStatus launchJobs() throws JobExecutionException {
         JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
                 .addDate("date", new Date());
-        return this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters()).getExitStatus();
+        JobExecution jobExecution = this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
+        switch (jobExecution.getStatus()) {
+
+            case COMPLETED: {
+
+                return jobExecution.getExitStatus().addExitDescription("Completed Job").replaceExitCode("200");
+            }
+
+            case FAILED: {
+
+                return jobExecution.getExitStatus().addExitDescription("Error").replaceExitCode("500");
+            }
+
+            case STOPPED: {
+
+                return jobExecution.getExitStatus().addExitDescription("Stop").replaceExitCode("0");
+            }
+
+            case UNKNOWN: {
+
+                return jobExecution.getExitStatus().addExitDescription("Unknown").replaceExitCode("404");
+            }
+
+            default: {
+
+                return jobExecution.getExitStatus().addExitDescription("Running successfully").replaceExitCode("Completed");
+            }
+        }
     }
+
 
     @Bean
     public IntegrationFlow inbound() {

@@ -76,7 +76,6 @@ public class BatchConfig {
     }
 
 
-
     // ============================================= STEPS =============================================
     @Bean
     public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactionManager transactionManager, CustomChunkListener customChunkListener, CustomStepExecutionListener customStepExecutionListener) {
