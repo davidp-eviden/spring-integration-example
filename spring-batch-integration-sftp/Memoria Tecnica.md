@@ -300,7 +300,7 @@ return new FlatFileItemWriterBuilder<T>()
 
 Esto coge *Beans* de tipo `T`, `.setNames` puede que estar en el orden que se quiera, pero los valores tienen que ser los mismos que los campos de `T`. 
 
-Coincidentemente aquí, los campos de `T` se llaman igual a los valores a usar en `.headerCallback`, por lo que se reusa.
+Coincidentemente aquí, los campos de `T` se llaman igual a los valores a usar en `.headerCallback`, por lo que se reusa `COLUMN_NAMES`.
 Para acabar, se usa `.build` para verificar e instanciar un `FlatFileItemWriter`, que luego se puede luego usar como parámetro en `StepBuilder().writer`.
 
 ---
