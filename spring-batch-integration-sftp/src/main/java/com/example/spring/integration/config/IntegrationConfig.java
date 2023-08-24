@@ -36,51 +36,44 @@ public class IntegrationConfig {
     }
 
     // This method is activated when someone subscribes to the launchJobsChannel.
+
+    /**
+     *
+     * @return Batch status of the job.
+     * <br>Refer to <a href="https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#batchStatusVsExitStatus">the difference between BatchStatus to ExitStatus</a>
+     * @throws JobExecutionException
+     */
     @ServiceActivator(inputChannel = "launchJobsChannel")
-    public ExitStatus launchJobs() throws JobExecutionException {
-        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder()
-                .addDate("date", new Date());
+    public BatchStatus launchJobs() throws JobExecutionException {
+        JobParametersBuilder jobParametersBuilder = new JobParametersBuilder().addDate("date", new Date());
         JobExecution jobExecution = this.jobLauncher.run(this.job, jobParametersBuilder.toJobParameters());
-        switch (jobExecution.getStatus()) {
-
-            case COMPLETED: {
-
+        return jobExecution.getStatus();
+        /*switch (jobExecution.getStatus()) {
+            case COMPLETED -> {
                 return jobExecution.getExitStatus().addExitDescription("Completed Job").replaceExitCode("200");
             }
-
-            case FAILED: {
-
+            case FAILED -> {
                 return jobExecution.getExitStatus().addExitDescription("Error").replaceExitCode("500");
             }
-
-            case STOPPED: {
-
+            case STOPPED -> {
                 return jobExecution.getExitStatus().addExitDescription("Stop").replaceExitCode("0");
             }
-
-            case UNKNOWN: {
-
+            case UNKNOWN -> {
                 return jobExecution.getExitStatus().addExitDescription("Unknown").replaceExitCode("404");
             }
-
-            case STARTING: {
-
+            case STARTING -> {
                 return jobExecution.getExitStatus().addExitDescription("Running successfully").replaceExitCode("Starting");
             }
-
-            default: {
-
+            default -> {
                 return jobExecution.getExitStatus();
             }
-        }
+        }*/
     }
 
 
     @Bean
     public IntegrationFlow inbound() {
-        return IntegrationFlow.from(Http.inboundGateway("/launch")
-                        .requestMapping(m -> m.methods(HttpMethod.POST)))
-                .channel("launchJobsChannel") // Subscription to the launchJobsChannel
+        return IntegrationFlow.from(Http.inboundGateway("/launch").requestMapping(m -> m.methods(HttpMethod.POST))).channel("launchJobsChannel") // Subscription to the launchJobsChannel
                 .get();
     }
 
