@@ -32,7 +32,7 @@ implementation 'org.springframework.batch:spring-batch-core:5.0.2'
 #### Qué es un trabajo
 Un trabajo o Job es un proceso que encapsula una tarea o un conjunto de tareas relacionadas que deben ejecutarse en lotes. 
 Generalmente consta de uno o más pasos (Steps)que deben ejecutarse en un orden específico.
-#### Como ejecutar un trabajo
+#### Cómo ejecutar un trabajo
 Para ejecutar un trabajo, debes configurar el contexto de la aplicación y crear el metodo con el Job. 
 El JobBuilder o JobLauncher es responsable de iniciar la ejecución del trabajo. 
 Una vez configurado, puedes invocar el Job con el nombre del trabajo que deseas ejecutar.
@@ -64,7 +64,7 @@ Finalmente, para ejecutar el trabajo debemos llamar al JobLauncher y pasarle el 
     }
 ```
 
-#### Como pasar parametros a un trabajo
+#### Cómo pasar parametros a un trabajo
 Como en el ejemplo anterior, Spring Batch te permite pasar parámetros a un trabajo al momento de su ejecución. Puedes definir parámetros en la configuración del trabajo y luego proporcionar valores concretos al ejecutarlo.
 
 Más información de como configurar el Job en la [documentación oficial](https://docs.spring.io/spring-batch/docs/current/reference/html/job.html)
@@ -74,7 +74,7 @@ Un paso o Step es una unidad de trabajo individual que forma parte de un trabajo
 Cada step tiene una función específica, como leer datos de una fuente externa, procesarlos y escribir el resultado en una ubicación deseada.
 Un Step podrá ser tan simple o complejo o de la tipología que el desarrollador determine oportuno.
 
-#### Como configurar un step
+#### Cómo configurar un step
 Un step puede estar compuesto de tres elementos: reader, writer y processor.
 Los readers son responsables de obtener datos, los processors realizan transformaciones en los datos y los writers escriben los resultados en una fuente de datos.
 ```java
@@ -115,11 +115,11 @@ public RepositoryItemWriter<ContractProcessed> writer() {
 ```
 ### Processors
 
-#### Que es un processor y que hace
+#### Qué es un processor y que hace
 
 El processor es el elemento responsable tratar la información obtenida por el reader, su uso no es obligatorio. Es donde se aplica lógica de negocio si se requiere de ella.
 
-#### Como convertir o procesar los datos
+#### Cómo convertir o procesar los datos
 
 Para ello tienes que crear un método de tipo ItemProcessor, o crear una clase que lo implemente.
 Esto sería un ejemplo de una implementación de un ItemProcessor, a través de una clase.
@@ -158,7 +158,7 @@ public Step moveToOtherTableStep(JobRepository jobRepository, PlatformTransactio
 ### Listeners
 
 > En los siguientes ejemplos se mostrara el manejo de las ejecuciones de trabajos, pasos y chunks y se hara uso de la anotacion `@Slf4j` la cual nos permite crear un objeto de tipo [Logger](https://docs.oracle.com/javase/8/docs/api/java/util/logging/Logger.html) con el que se enviaran mensajes en consola mostrando la informacion.
-#### Como escuchar cuando se ejecuta un trabajo
+#### Cómo escuchar cuando se ejecuta un trabajo
 
 Para poder escuchar las ejecuciones de un trabajo podemos crear un clase personalizada que extienda de la clase principal `JobExecutionListener` encargada de escuchar las ejecuciones de un trabajo.
 
@@ -196,7 +196,7 @@ public Job simpleJob(JobRepository jobRepository, CustomJobExecutionListener cus
 ```
 
 * En este caso para poder implementar el escuchador utilizamos el metodo `listener(...)` donde le  tenemos que pasar un objeto de tipo `JobExecutionListener` o que herede de dicha clase, en nuestro caso hemos creado una clase personalizada que si hereda de `JobExecutionListener`.
-#### Como escuchar cada chunk
+#### Cómo escuchar cada chunk
 
 A continuacion veremos un ejemplo de como poder escuchar cuando un [chunk](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#chunkOrientedProcessing)  sea leido.
 ##### Paso 1:  Crear una clase personalizada que extienda de la clase principal ChunkListener
@@ -270,6 +270,38 @@ public Step simpleStep(PlatformTransactionManager transactionManager, JobReposit
 }
 ```
 
+### FILEs
+Para convertir a CSV, usamos un [``FlatFileItemWriter``](https://docs.spring.io/spring-batch/docs/current/reference/html/readersAndWriters.html#flatFileItemWriter), que nos ayuda a escribir un archivo plano.
+
+Para crear un `FlatFileItemWriter` usamos `FlatFileItemWriterBuilder`, que contiene información sobre como crear y escribir el archivo.
+
+```java
+return new FlatFileItemWriterBuilder<T>()
+	.name("writerToCsv")
+    .headerCallback(writer -> writer.write(String.join(",", COLUMN_NAMES))) // Set the header values
+	.resource(new FileSystemResource(DEFAULT_FILE_PATH)) // Set the output directory
+    .delimited()
+    .delimiter(",") // Each element is separated by commas.
+    .fieldExtractor(beanWrapperFieldExtractor) // Use the extractor ( Convert from contract objet to array of its parts ).
+	.build();
+```
+- `.name` Nombre a identificar a este `FlatFileItemWriterBuilder`
+- `.headerCallback` Delegado para escribir el *header* del archivo.
+- `.resource` El recurso a donde escribir, aquí, se usa ``new FileSystemResource`` junto a una ruta del sistema para crear un nuevo recurso.
+- `.delimited` Hace que se vaya a escribir un archivo delimitado.
+- `.delimiter` Especifica el caracter a usar para separar elementos.
+
+[`FieldExtractor`](https://docs.spring.io/spring-batch/docs/current/reference/html/readersAndWriters.html#FieldExtractor) es especial, ya que a partir de objetos, extrae sus datos y los convierte a lineas a agregar a un archivo. Para hacer eso:
+
+```java
+	BeanWrapperFieldExtractor<T> beanWrapperFieldExtractor = new BeanWrapperFieldExtractor<>();
+	beanWrapperFieldExtractor.setNames(COLUMN_NAMES);
+```
+
+Esto coge *Beans* de tipo `T`, `.setNames` puede que estar en el orden que se quiera, pero los valores tienen que ser los mismos que los campos de `T`. 
+
+Coincidentemente aquí, los campos de `T` se llaman igual a los valores a usar en `.headerCallback`, por lo que se reusa.
+Para acabar, se usa `.build` para verificar e instanciar un `FlatFileItemWriter`, que luego se puede luego usar como parámetro en `StepBuilder().writer`.
 
 ---
 
@@ -309,7 +341,7 @@ Es necesario que este en una clase marcada con ``@EnableIntegration``
 
 Información adicional en la [documentación oficial](https://docs.spring.io/spring-integration/docs/current/reference/html/http.html).
 
-#### Como crear un endpoint
+#### Cómo crear un endpoint
 
 Se necesita un ``@Bean`` de ``IntegrationFlow``. Este se subscribirá a un canal, que tiene que estar definido.
 ```java
@@ -320,7 +352,7 @@ public IntegrationFlow inbound() {
 		.get();
 }
 ```
-#### Como ejecutar los trabajos a traves de una peticion HTTP
+#### Cómo ejecutar los trabajos a traves de una peticion HTTP
 
 Una vez creado el *endpoint* hay que conectarlo con un canal ("*channel*"). 
 Para esto, modificamos el *endpoint* anterior para especificar el canal.
@@ -359,10 +391,10 @@ Los nombres de los canales **deben de ser únicos**.
 
 ### SFTP
 
-#### Que permite hacer spring integration SFTP
+#### Qué permite hacer spring integration SFTP
 
 Spring integration sftp te permite el envio de ficheros y mensajes a traves del protocolo [SFTP](https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol)
-#### Como enviar un archivo via sftp
+#### Cómo enviar un archivo via sftp
 
 Los siguiente pasos muestran como enviar un fichero sftp y encapsularlo en un paso para ser ejecutado a traves de un trabajo.
 
@@ -422,7 +454,7 @@ public Step sendToSftpStep(JobRepository jobRepository, PlatformTransactionManag
 }
 ```
 
-* `tasklet()` permite crear pasos para aquellas funciones en las que no se tenga que hacer uso de reader o writers. En este caso esta tarea solo llamaria al metodo que se definio en la interfaz **CustomGateway** y se le pasa por parametro un archivo. Para mas informacion acerca de las **tasklets** consulte el siguiente [enlace](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#taskletStep)
+* `tasklet()` permite crear pasos para aquellas funciones en las que no se tenga que hacer uso de reader o writers. En este caso esta tarea solo llamaria al metodo que se definio en la interfaz `CustomGateway` y se le pasa por parametro un archivo. Para mas informacion acerca de las **tasklets** consulte el siguiente [enlace](https://docs.spring.io/spring-batch/docs/current/reference/html/step.html#taskletStep)
 
 
 ## References
